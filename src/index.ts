@@ -1,12 +1,9 @@
 export type FailoverProviderConfig = {
-  stallTimeout?: number
   retries?: number
 }
 
 export type ProviderProxy<T> = {
   provider: T
-  // Currently we use getBlockNumber or equivalence for health check
-  ping: (provider: T) => Promise<string>
   // The last response duration
   ms: number
 }
@@ -15,19 +12,14 @@ export default class FailoverProvider<T extends object> {
   private activeProvider: number = 0
   public providers: Array<ProviderProxy<T>> = []
 
-  private readonly stallTimeout: number
   private readonly retries: number
 
-  constructor({
-    stallTimeout = 3000,
-    retries = 3,
-  }: FailoverProviderConfig = {}) {
-    this.stallTimeout = stallTimeout
+  constructor({ retries = 3 }: FailoverProviderConfig = {}) {
     this.retries = retries
   }
 
-  addProvider = <P extends T>(provider: P, ping: () => Promise<string>) => {
-    this.providers.push({ provider, ping, ms: 0 })
+  addProvider = <P extends T>(provider: P) => {
+    this.providers.push({ provider, ms: 0 })
     return this
   }
 
@@ -101,57 +93,3 @@ export default class FailoverProvider<T extends object> {
     }
   }
 }
-
-class Car {
-  constructor(
-    public readonly sound: string,
-    public readonly duration: number,
-  ) {}
-
-  start = async () => {
-    await new Promise((r) => setTimeout(r, this.duration))
-    return true
-  }
-
-  run = (modification: string = '') => {
-    console.log(modification || this.sound)
-  }
-}
-
-class Subaru extends Car {
-  constructor() {
-    super('Subaru', 1000)
-  }
-
-  start = async () => {
-    await new Promise((r) => setTimeout(r, this.duration))
-    throw new Error('Broken engine')
-  }
-}
-
-class Honda extends Car {
-  constructor() {
-    super('Honda', 3000)
-  }
-
-  start = async () => {
-    await new Promise((r) => setTimeout(r, this.duration))
-    throw new Error('Broken engine')
-  }
-}
-
-;(async () => {
-  const failover = new FailoverProvider<Car>()
-  const provider = failover
-    .addProvider(new Honda(), async () => '')
-    .addProvider(new Subaru(), async () => '')
-    .initialize()
-
-  try {
-    await provider.start()
-  } catch {
-    provider.run()
-  } finally {
-    console.log(failover.providers)
-  }
-})()
