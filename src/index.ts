@@ -18,11 +18,20 @@ export default class FailoverProvider<T extends object> {
     this.retries = retries
   }
 
+  /**
+   * Add a provider into the list of candidates
+   * @param provider Provider
+   * @returns The instance of FailoverProvider
+   */
   addProvider = <P extends T>(provider: P) => {
     this.providers.push({ provider, ms: 0 })
     return this
   }
 
+  /**
+   * The FailoverProvider factory
+   * @returns The instance of FailoverProvider
+   */
   initialize = () => {
     if (!this.providers.length)
       throw new Error(
@@ -47,6 +56,11 @@ export default class FailoverProvider<T extends object> {
     return this.providers[this.activeProvider]
   }
 
+  /**
+   * Store the response time of the latest request
+   * @param target - The provider proxy
+   * @returns The benchmark close
+   */
   private benchmark = (target: ProviderProxy<T>) => {
     const start = performance.now()
     return () => {
@@ -54,6 +68,14 @@ export default class FailoverProvider<T extends object> {
     }
   }
 
+  /**
+   * Proxy handler will keep retry until a response or throw the latest error.
+   * @param target The current active provider
+   * @param p The method name
+   * @param receiver The JS Proxy
+   * @param retries The number of retries
+   * @returns
+   */
   private proxy = (
     target: ProviderProxy<T>,
     p: string | symbol,
