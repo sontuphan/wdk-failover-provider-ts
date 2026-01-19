@@ -2,12 +2,23 @@
   "name": "wdk-failover-provider",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
-  "main": "dist/index.js",
+  "description": "The failover provider",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsup-node src --clean --format esm,cjs --out-dir dist",
+    "build": "tsup-node src --clean --format esm,cjs --dts --sourcemap --out-dir dist",
     "build:test": "tsup-node tests --clean --silent --format esm --out-dir dist/tests",
-    "test": "noba --register tsx ./tests/*.test.ts",
+    "test": "npm run build && noba --register tsx ./tests/*.test.ts",
     "test:node": "npm run build:test && noba ./dist/tests/*.test.js",
     "test:bare": "npm run build:test && noba-bare ./dist/tests/*.test.js"
   },

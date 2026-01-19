@@ -33,10 +33,7 @@ export default class FailoverProvider<T extends object> {
 
     return new Proxy(provider, {
       get: (_, p, receiver) => {
-        const target = this.providers[this.activeProvider]
-        const prop = Reflect.get(target.provider, p, receiver)
-        if (typeof prop !== 'function') return prop
-        return this.proxy(target, prop)
+        return this.proxy(this.providers[this.activeProvider], p, receiver)
       },
     })
   }
@@ -59,7 +56,8 @@ export default class FailoverProvider<T extends object> {
 
   private proxy = (
     target: ProviderProxy<T>,
-    prop: Function,
+    p: string | symbol,
+    receiver: any,
     retries: number = this.retries,
   ) => {
     return (...args: any[]): any => {
@@ -68,6 +66,9 @@ export default class FailoverProvider<T extends object> {
 
       // Retry on sync functions
       try {
+        const prop = Reflect.get(target.provider, p, receiver)
+        if (typeof prop !== 'function') return prop
+
         re = prop.apply(target.provider, args)
         if (!re?.then) {
           record()
@@ -76,7 +77,7 @@ export default class FailoverProvider<T extends object> {
       } catch (er: unknown) {
         record()
         if (retries <= 0) throw er
-        return this.proxy(this.switch(), prop, retries - 1)
+        return this.proxy(this.switch(), p, receiver, retries - 1)
       }
 
       // Retry on async functions
@@ -88,7 +89,7 @@ export default class FailoverProvider<T extends object> {
         .catch((er: unknown) => {
           record()
           if (retries <= 0) throw er
-          return this.proxy(this.switch(), prop, retries - 1)(...args)
+          return this.proxy(this.switch(), p, receiver, retries - 1)(...args)
         })
     }
   }
