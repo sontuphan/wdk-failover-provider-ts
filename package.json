@@ -17,8 +17,8 @@
   ],
   "scripts": {
     "build": "tsup-node src --clean --format esm,cjs --dts --sourcemap --out-dir dist",
-    "build:test": "tsup-node tests --clean --silent --format esm --out-dir dist/tests",
     "test": "npm run build && noba --register tsx ./tests/*.test.ts",
+    "build:test": "tsup-node tests --clean --silent --format esm --out-dir dist/tests",
     "test:node": "npm run build:test && noba ./dist/tests/*.test.js",
     "test:bare": "npm run build:test && noba-bare ./dist/tests/*.test.js"
   },
