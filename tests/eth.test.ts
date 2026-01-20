@@ -31,4 +31,24 @@ describe('Ethereum providers', ({ test }) => {
 
     expect(blockNumber > 0).to.be(true)
   })
+
+  test('should retry 1 time and fail', async ({ expect }) => {
+    const provider = new FailoverProvider<AbstractProvider>()
+      .addProvider(new BrowserProvider(window.ethereum))
+      .addProvider(new BrowserProvider(window.ethereum))
+      .addProvider(
+        new JsonRpcProvider(
+          'https://mainnet.infura.io/v3/06da09cda4da458c9aafe71cf464f5e5',
+          {
+            name: 'mainnet',
+            chainId: 1,
+          },
+        ),
+      )
+      .initialize()
+
+    const blockNumber = await provider.getBlockNumber()
+
+    expect(blockNumber > 0).to.be(true)
+  })
 })
