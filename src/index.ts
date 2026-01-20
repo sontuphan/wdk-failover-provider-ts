@@ -62,9 +62,9 @@ export default class FailoverProvider<T extends object> {
    * @returns The benchmark close
    */
   private benchmark = (target: ProviderProxy<T>) => {
-    const start = performance.now()
+    const start = Date.now()
     return () => {
-      target.ms = Math.round(performance.now() - start)
+      target.ms = Math.round(Date.now() - start)
     }
   }
 

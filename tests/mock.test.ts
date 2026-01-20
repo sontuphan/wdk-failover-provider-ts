@@ -68,6 +68,6 @@ describe('Mocked providers', ({ test }) => {
 
     expect(async () => {
       await animal.speak(log)
-    }).rejects(/doesn't speak/)
+    }).rejects("doesn't speak")
   })
 })

@@ -2,7 +2,7 @@
   "name": "wdk-failover-provider",
   "version": "1.0.0",
   "type": "module",
-  "description": "The failover provider",
+  "description": "The zero-dependency failover provider",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,17 +23,15 @@
     "test:bare": "npm run build:test && noba-bare ./dist/tests/*.test.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.16.1",
+  "author": "Tu Phan",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^25.0.9",
+    "bare-node-runtime": "^1.1.4",
     "ethers": "^6.16.0",
+    "noba": "^1.6.4",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "noba": "^1.6.4"
   }
 }

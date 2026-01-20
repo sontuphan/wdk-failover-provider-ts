@@ -1,6 +1,11 @@
 import { describe } from 'noba'
 import FailoverProvider from 'wdk-failover-provider'
-import { JsonRpcProvider, BrowserProvider, AbstractProvider } from 'ethers'
+import { shims } from './config'
+import type { AbstractProvider } from 'ethers'
+
+const { JsonRpcProvider, BrowserProvider } = await import('ethers', {
+  with: shims,
+})
 
 const window = {
   ethereum: {
