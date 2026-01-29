@@ -10,7 +10,7 @@ on:
 
 env:
   NODE_VERSION: 22
-  BARE_VERSION: 1.23
+  BARE_VERSION: 1.26
 
 jobs:
   test:
