@@ -1,5 +1,6 @@
 export type FailoverProviderConfig = {
   retries?: number
+  shouldRetryOn?: (error: unknown) => boolean
 }
 
 export type ProviderProxy<T> = {
@@ -13,9 +14,14 @@ export default class FailoverProvider<T extends object> {
   public providers: Array<ProviderProxy<T>> = []
 
   private readonly retries: number
+  private readonly shouldRetryOn: (error: unknown) => boolean
 
-  constructor({ retries = 3 }: FailoverProviderConfig = {}) {
+  constructor({
+    retries = 3,
+    shouldRetryOn = (error) => error instanceof Error,
+  }: FailoverProviderConfig = {}) {
     this.retries = retries
+    this.shouldRetryOn = shouldRetryOn
   }
 
   /**
@@ -98,7 +104,7 @@ export default class FailoverProvider<T extends object> {
         }
       } catch (er: unknown) {
         record()
-        if (retries <= 0) throw er
+        if (retries <= 0 || !this.shouldRetryOn(er)) throw er
         return this.proxy(this.switch(), p, receiver, retries - 1)
       }
 
@@ -110,7 +116,7 @@ export default class FailoverProvider<T extends object> {
         })
         .catch((er: unknown) => {
           record()
-          if (retries <= 0) throw er
+          if (retries <= 0 || !this.shouldRetryOn(er)) throw er
           return this.proxy(this.switch(), p, receiver, retries - 1)(...args)
         })
     }

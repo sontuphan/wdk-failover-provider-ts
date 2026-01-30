@@ -7,14 +7,13 @@ class Animal {
     public readonly pace: number = 300,
   ) {}
 
-  speak = async (log = console.log) => {
+  speak = async () => {
     await new Promise((r) => setTimeout(r, this.pace))
-    log(this.sound)
-    return true
+    return this.sound
   }
 }
 
-describe('Mocked providers', ({ test }) => {
+describe('Mocked providers', ({ describe, test }) => {
   class Cat extends Animal {
     constructor() {
       super('meow')
@@ -37,28 +36,28 @@ describe('Mocked providers', ({ test }) => {
     }
   }
 
-  test('should accept polymorphism', async ({ log, expect }) => {
+  test('should accept polymorphism', async ({ expect }) => {
     const animal = new FailoverProvider<Animal>()
       .addProvider(new Cat())
       .addProvider(new Dog())
       .initialize()
 
-    const spoke = await animal.speak(log)
-    expect(spoke).to.be(true)
+    const spoke = await animal.speak()
+    expect(spoke).to.be('meow')
   })
 
-  test('should switch provider', async ({ log, expect }) => {
+  test('should switch provider', async ({ expect }) => {
     const animal = new FailoverProvider<Animal>()
       .addProvider(new Cockroach())
-      .addProvider(new Cat())
       .addProvider(new Dog())
+      .addProvider(new Cat())
       .initialize()
 
-    const spoke = await animal.speak(log)
-    expect(spoke).to.be(true)
+    const spoke = await animal.speak()
+    expect(spoke).to.be('woof')
   })
 
-  test('should retry 1 times and fail', async ({ log, expect }) => {
+  test('should retry 1 times and fail', async ({ expect }) => {
     const animal = new FailoverProvider<Animal>({ retries: 1 })
       .addProvider(new Cockroach())
       .addProvider(new Cockroach())
@@ -67,7 +66,39 @@ describe('Mocked providers', ({ test }) => {
       .initialize()
 
     expect(async () => {
-      await animal.speak(log)
+      await animal.speak()
     }).rejects("doesn't speak")
+  })
+
+  describe('shouldRetryOn config', ({ test }) => {
+    test('should not retry on custom shouldRetryOn', async ({ expect }) => {
+      const animal = new FailoverProvider<Animal>({
+        shouldRetryOn: (error) => {
+          if (error instanceof Error) {
+            return !/cockroach/.test(error.message)
+          }
+          return true
+        },
+      })
+        .addProvider(new Cockroach())
+        .addProvider(new Cat())
+        .addProvider(new Dog())
+        .initialize()
+
+      expect(async () => {
+        await animal.speak()
+      }).rejects("doesn't speak")
+    })
+
+    test('should retry on the default shouldRetryOn', async ({ expect }) => {
+      const animal = new FailoverProvider<Animal>()
+        .addProvider(new Cockroach())
+        .addProvider(new Cat())
+        .addProvider(new Dog())
+        .initialize()
+
+      const spoken = await animal.speak()
+      expect(spoken).to.be('meow')
+    })
   })
 })
