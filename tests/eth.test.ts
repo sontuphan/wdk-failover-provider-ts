@@ -1,11 +1,12 @@
 import { describe } from 'noba'
 import FailoverProvider from 'wdk-failover-provider'
 import { shims } from './config'
-import { parseEther, Wallet, ZeroAddress, type AbstractProvider } from 'ethers'
+import { type AbstractProvider } from 'ethers'
 
-const { JsonRpcProvider, BrowserProvider } = await import('ethers', {
-  with: shims,
-})
+const { JsonRpcProvider, BrowserProvider, parseEther, Wallet, ZeroAddress } =
+  await import('ethers', {
+    with: shims,
+  })
 
 /**
  * A dummy in-page provider
